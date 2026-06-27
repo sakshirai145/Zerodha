@@ -25,16 +25,18 @@ function RightSection({
               {ProductDescription}
             </p>
 
-            <a
-              href={learnMore}
-              style={{
-                color: "#387ed1",
-                textDecoration: "none",
-                fontWeight: "500",
-              }}
-            >
-              Learn more <i className="fa fa-long-arrow-right" />
-            </a>
+            {learnMore && (
+              <a
+                href={learnMore}
+                style={{
+                  color: "#387ed1",
+                  textDecoration: "none",
+                  fontWeight: "500",
+                }}
+              >
+                Learn more <i className="fa fa-long-arrow-right" />
+              </a>
+            )}
           </div>
         </div>
 

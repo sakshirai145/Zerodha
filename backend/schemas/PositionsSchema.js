@@ -11,4 +11,4 @@ const PositionsSchema = new mongoose.Schema({
   isLoss: Boolean,
 });
 
-module.exports = mongoose.model("position", PositionsSchema);
+module.exports = PositionsSchema;

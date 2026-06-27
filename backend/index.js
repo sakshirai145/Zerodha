@@ -180,14 +180,24 @@ app.use(bodyParser.json());
 //   }
 // });
 
-app.get('/allHoldings',async (req,res)=>{
-  let allHoldings = await HoldingsModel.find({});
-  res.json(allHoldings);
+app.get('/allHoldings', async (req, res) => {
+  try {
+    let allHoldings = await HoldingsModel.find({});
+    res.json(allHoldings);
+  } catch (error) {
+    console.error("Error fetching holdings:", error);
+    res.status(500).json({ error: "Failed to fetch holdings" });
+  }
 });
 
-app.get('/allPositions',async (req,res)=>{
-  let allPositions = await PositionsModel.find({});
-  res.json(allPositions);
+app.get('/allPositions', async (req, res) => {
+  try {
+    let allPositions = await PositionsModel.find({});
+    res.json(allPositions);
+  } catch (error) {
+    console.error("Error fetching positions:", error);
+    res.status(500).json({ error: "Failed to fetch positions" });
+  }
 });
 
 app.post('/newOrders', async (req, res) => {
@@ -210,9 +220,7 @@ app.post('/newOrders', async (req, res) => {
 
 
 
-mongoose.connect(uri, {
-  authSource: "admin", // Ensures auth against admin DB [web:2][page:1]
-})
+mongoose.connect(uri)
 .then(() => {
   console.log("Connected to MongoDB");
 })

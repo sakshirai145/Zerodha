@@ -21,19 +21,23 @@ function LeftSection({
           <p>{ProductDescription}</p>
 
           <div className="mb-4">
-            <a
-              href={tryDemo}
-              style={{ textDecoration: "none" }}
-            >
-              Try demo <i className="fa fa-long-arrow-right" />
-            </a>
+            {tryDemo && (
+              <a
+                href={tryDemo}
+                style={{ textDecoration: "none" }}
+              >
+                Try demo <i className="fa fa-long-arrow-right" />
+              </a>
+            )}
 
-            <a
-              href={learnMore}
-              style={{ marginLeft: "40px", textDecoration: "none" }}
-            >
-              Learn more <i className="fa fa-long-arrow-right" />
-            </a>
+            {learnMore && (
+              <a
+                href={learnMore}
+                style={{ marginLeft: "40px", textDecoration: "none" }}
+              >
+                Learn more <i className="fa fa-long-arrow-right" />
+              </a>
+            )}
           </div>
 
           <div

@@ -7,9 +7,7 @@ const HoldingsSchema = new mongoose.Schema({
   price: Number,
   net: String,
   day: String,
+  isLoss: Boolean,
 });
 
-// register the model
-const Holding = mongoose.model("holding", HoldingsSchema);
-
-module.exports = Holding;
+module.exports = HoldingsSchema;
