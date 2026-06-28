@@ -1,77 +1,147 @@
-import React, { useState, useContext } from "react";
-
-import axios from "axios";
-
+import React, { useState, useEffect, useContext, useMemo } from "react";
+import client from "../api/client";
 import GeneralContext from "./GeneralContext";
-
 import { Tooltip, Grow } from "@mui/material";
-
 import {
   BarChartOutlined,
   KeyboardArrowDown,
   KeyboardArrowUp,
-  MoreHoriz,
+  DeleteOutline,
 } from "@mui/icons-material";
-
-import { watchlist } from "../data/data";
 import { DoughnutChart } from "./DoughnoutChart";
 
-const labels = watchlist.map((subArray) => subArray["name"]);
+function formatPrice(price) {
+  if (price === null || price === undefined) return "—";
+  return Number(price).toFixed(2);
+}
+
+function formatTimestamp(date) {
+  if (!date) return "";
+  const d = new Date(date);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  return d.toLocaleDateString();
+}
 
 const WatchList = () => {
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: "Price",
-        data: watchlist.map((stock) => stock.price),
-        backgroundColor: [
-          "rgba(255, 99, 132, 0.5)",
-          "rgba(54, 162, 235, 0.5)",
-          "rgba(255, 206, 86, 0.5)",
-          "rgba(75, 192, 192, 0.5)",
-          "rgba(153, 102, 255, 0.5)",
-          "rgba(255, 159, 64, 0.5)",
-        ],
-        borderColor: [
-          "rgba(255, 99, 132, 1)",
-          "rgba(54, 162, 235, 1)",
-          "rgba(255, 206, 86, 1)",
-          "rgba(75, 192, 192, 1)",
-          "rgba(153, 102, 255, 1)",
-          "rgba(255, 159, 64, 1)",
-        ],
-        borderWidth: 1,
-      },
-    ],
+  const { refreshKey } = useContext(GeneralContext);
+  const [watchlist, setWatchlist] = useState({ items: [] });
+  const [search, setSearch] = useState("");
+  const [newSymbol, setNewSymbol] = useState("");
+  const [newName, setNewName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const abortController = new AbortController();
+    client
+      .get("/api/watchlist", { signal: abortController.signal })
+      .then((res) => {
+        setWatchlist(res.data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (err.name === "CanceledError") return;
+        if (err.response?.status !== 401) {
+          setError(err.userMessage || "Failed to load watchlist");
+        }
+        setLoading(false);
+      });
+    return () => abortController.abort();
+  }, [refreshKey]);
+
+  const handleAdd = async () => {
+    if (!newSymbol.trim()) return;
+    try {
+      const res = await client.post(
+        "/api/watchlist/add",
+        { symbol: newSymbol.trim(), name: newName.trim() || newSymbol.trim() }
+      );
+      setWatchlist(res.data);
+      setNewSymbol("");
+      setNewName("");
+    } catch (err) {
+      if (err.response?.status !== 401) {
+        setError(err.userMessage || "Failed to add stock");
+      }
+    }
   };
 
-  // export const data = {
-  //   labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-  // datasets: [
-  //   {
-  //     label: "# of Votes",
-  //     data: [12, 19, 3, 5, 2, 3],
-  //     backgroundColor: [
-  //       "rgba(255, 99, 132, 0.2)",
-  //       "rgba(54, 162, 235, 0.2)",
-  //       "rgba(255, 206, 86, 0.2)",
-  //       "rgba(75, 192, 192, 0.2)",
-  //       "rgba(153, 102, 255, 0.2)",
-  //       "rgba(255, 159, 64, 0.2)",
-  //     ],
-  //     borderColor: [
-  //       "rgba(255, 99, 132, 1)",
-  //       "rgba(54, 162, 235, 1)",
-  //       "rgba(255, 206, 86, 1)",
-  //       "rgba(75, 192, 192, 1)",
-  //       "rgba(153, 102, 255, 1)",
-  //       "rgba(255, 159, 64, 1)",
-  //     ],
-  //     borderWidth: 1,
-  //   },
-  // ],
-  // };
+  const handleRemove = async (symbol) => {
+    try {
+      const res = await client.delete(`/api/watchlist/${symbol}`);
+      setWatchlist(res.data);
+    } catch (err) {
+      if (err.response?.status !== 401) {
+        setError(err.userMessage || "Failed to remove stock");
+      }
+    }
+  };
+
+  const filteredItems = useMemo(
+    () =>
+      watchlist.items.filter(
+        (item) =>
+          item.symbol.toLowerCase().includes(search.toLowerCase()) ||
+          item.name.toLowerCase().includes(search.toLowerCase())
+      ),
+    [watchlist.items, search]
+  );
+
+  const hasPriceData = watchlist.items.some(
+    (item) => item.price !== null && item.price !== undefined
+  );
+
+  const chartData = useMemo(() => {
+    if (!hasPriceData) return null;
+    return {
+      labels: watchlist.items.map((item) => item.symbol),
+      datasets: [
+        {
+          label: "Last Price",
+          data: watchlist.items.map((item) => item.price ?? 0),
+          backgroundColor: [
+            "rgba(255, 99, 132, 0.5)",
+            "rgba(54, 162, 235, 0.5)",
+            "rgba(255, 206, 86, 0.5)",
+            "rgba(75, 192, 192, 0.5)",
+            "rgba(153, 102, 255, 0.5)",
+            "rgba(255, 159, 64, 0.5)",
+          ],
+          borderColor: [
+            "rgba(255, 99, 132, 1)",
+            "rgba(54, 162, 235, 1)",
+            "rgba(255, 206, 86, 1)",
+            "rgba(75, 192, 192, 1)",
+            "rgba(153, 102, 255, 1)",
+            "rgba(255, 159, 64, 1)",
+          ],
+          borderWidth: 1,
+        },
+      ],
+    };
+  }, [watchlist.items, hasPriceData]);
+
+  if (loading) {
+    return (
+      <div className="watchlist-container">
+        <p style={{ padding: "16px", color: "#999" }}>Loading watchlist...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="watchlist-container">
+        <p style={{ padding: "16px", color: "#d32f2f" }}>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="watchlist-container">
@@ -80,56 +150,138 @@ const WatchList = () => {
           type="text"
           name="search"
           id="search"
-          placeholder="Search eg:infy, bse, nifty fut weekly, gold mcx"
+          placeholder="Search watchlist..."
           className="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
         />
-        <span className="counts"> {watchlist.length} / 50</span>
+        <span className="counts">
+          {" "}
+          {watchlist.items.length} / 50
+        </span>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          gap: "4px",
+          padding: "4px 8px",
+        }}
+      >
+        <input
+          type="text"
+          placeholder="Symbol"
+          value={newSymbol}
+          onChange={(e) => setNewSymbol(e.target.value)}
+          style={{
+            flex: 1,
+            padding: "4px 8px",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            fontSize: "12px",
+          }}
+        />
+        <input
+          type="text"
+          placeholder="Name (optional)"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          style={{
+            flex: 1,
+            padding: "4px 8px",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            fontSize: "12px",
+          }}
+        />
+        <button
+          onClick={handleAdd}
+          style={{
+            padding: "4px 12px",
+            background: "#4184f3",
+            color: "#fff",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontSize: "12px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Add
+        </button>
       </div>
 
       <ul className="list">
-        {watchlist.map((stock, index) => {
-          return <WatchListItem stock={stock} key={index} />;
-        })}
+        {filteredItems.length === 0 ? (
+          <li style={{ color: "#999", padding: "12px 14px", fontSize: "13px" }}>
+            {search ? "No matching stocks" : "Watchlist is empty. Add a stock above."}
+          </li>
+        ) : (
+          filteredItems.map((item) => (
+            <WatchListItem
+              key={item.symbol}
+              stock={{
+                name: item.symbol,
+                fullName: item.name,
+                price: formatPrice(item.price),
+                updatedAt: formatTimestamp(item.priceUpdatedAt),
+              }}
+              onRemove={() => handleRemove(item.symbol)}
+            />
+          ))
+        )}
       </ul>
 
-      <DoughnutChart data={data} />
+      {chartData && <DoughnutChart data={chartData} />}
     </div>
   );
 };
 
 export default WatchList;
 
-const WatchListItem = ({ stock }) => {
-  const [showWatchlistActions, setShowWatchlistActions] = useState(false);
-
-  const handleMouseEnter = (e) => {
-    setShowWatchlistActions(true);
-  };
-
-  const handleMouseLeave = (e) => {
-    setShowWatchlistActions(false);
-  };
+const WatchListItem = ({ stock, onRemove }) => {
+  const [showActions, setShowActions] = useState(false);
 
   return (
-    <li onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <li
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
+    >
       <div className="item">
-        <p className={stock.isDown ? "down" : "up"}>{stock.name}</p>
+        <p>
+          {stock.name}
+          <span
+            style={{
+              fontSize: "11px",
+              color: "#999",
+              marginLeft: "6px",
+              fontWeight: 400,
+            }}
+          >
+            {stock.fullName}
+          </span>
+        </p>
         <div className="itemInfo">
-          <span className="percent">{stock.percent}</span>
-          {stock.isDown ? (
-            <KeyboardArrowDown className="down" />
-          ) : (
-            <KeyboardArrowUp className="down" />
-          )}
           <span className="price">{stock.price}</span>
+          {stock.updatedAt && (
+            <span
+              style={{
+                fontSize: "10px",
+                color: "#999",
+                marginLeft: "6px",
+              }}
+            >
+              {stock.updatedAt}
+            </span>
+          )}
         </div>
       </div>
-      {showWatchlistActions && <WatchListActions uid={stock.name} />}
+      {showActions && <WatchListActions uid={stock.name} onRemove={onRemove} />}
     </li>
   );
 };
 
-const WatchListActions = ({ uid }) => {
+const WatchListActions = ({ uid, onRemove }) => {
   const generalContext = useContext(GeneralContext);
 
   const handleBuyClick = () => {
@@ -144,9 +296,10 @@ const WatchListActions = ({ uid }) => {
           placement="top"
           arrow
           TransitionComponent={Grow}
-          onClick={handleBuyClick}
         >
-          <button className="buy">Buy</button>
+          <button className="buy" onClick={handleBuyClick}>
+            Buy
+          </button>
         </Tooltip>
         <Tooltip
           title="Sell (S)"
@@ -166,9 +319,9 @@ const WatchListActions = ({ uid }) => {
             <BarChartOutlined className="icon" />
           </button>
         </Tooltip>
-        <Tooltip title="More" placement="top" arrow TransitionComponent={Grow}>
-          <button className="action">
-            <MoreHoriz className="icon" />
+        <Tooltip title="Remove" placement="top" arrow TransitionComponent={Grow}>
+          <button className="action" onClick={onRemove}>
+            <DeleteOutline className="icon" />
           </button>
         </Tooltip>
       </span>

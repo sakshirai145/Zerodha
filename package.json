@@ -9,6 +9,7 @@
     "build:dashboard": "npm run build --prefix dashboard",
     "build": "npm run build:frontend && npm run build:dashboard",
     "start": "npm start --prefix backend",
-    "dev:backend": "npm run dev --prefix backend"
+    "dev:backend": "npm run dev --prefix backend",
+    "smoke-test": "node smoke-test.mjs"
   }
 }

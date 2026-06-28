@@ -1,62 +1,100 @@
-import React from 'react';
-import {Link} from 'react-router-dom';
+import React from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function Navbar() {
+  const { user, logout } = useAuth();
+
   return (
+    <nav
+      className="navbar navbar-expand-lg border-bottom"
+      style={{ backgroundColor: "#fff" }}
+    >
+      <div className="container p-2">
+        <Link className="navbar-brand" to="/">
+          <img src="media/logo.svg" style={{ width: "25%" }} alt="Logo" />
+        </Link>
 
-      <nav className="navbar navbar-expand-lg border-bottom"
-      style={{ backgroundColor: '#fff' }}>
-        <div className="container p-2">
+        <button
+          className="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarSupportedContent"
+          aria-controls="navbarSupportedContent"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span className="navbar-toggler-icon"></span>
+        </button>
 
-          <Link className="navbar-brand" to="#">
-            <img src="media/logo.svg" style={{ width: '25%' }} alt="Logo" />
-          </Link>
-
-          <button
-            className="navbar-toggler"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent"
-            aria-expanded="false"
-            aria-label="Toggle navigation"
-          >
-            <span className="navbar-toggler-icon"></span>
-          </button>
-
-          <div className="collapse navbar-collapse" id="navbarSupportedContent">
-            
-            <form className="d-flex" role="search">
-              <ul className="navbar-nav  mb-lg-0">
-
+        <div className="collapse navbar-collapse" id="navbarSupportedContent">
+          <form className="d-flex" role="search">
+            <ul className="navbar-nav mb-lg-0">
               <li className="nav-item">
-                <Link className="nav-link active text-muted" aria-current="page" to="/signup">Signup</Link>
+                <Link className="nav-link active text-muted" to="/about">
+                  About
+                </Link>
               </li>
 
               <li className="nav-item">
-                <Link className="nav-link active text-muted" to="/about">About</Link>
+                <Link className="nav-link active text-muted" to="/product">
+                  Product
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link active text-muted" to="/pricing">
+                  Pricing
+                </Link>
+              </li>
+              <li className="nav-item">
+                <Link className="nav-link active text-muted" to="/support">
+                  Support
+                </Link>
               </li>
 
-              <li className="nav-item">
-                <Link className="nav-link active text-muted" to="/product">Product</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link active text-muted" to="/pricing">Pricing</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link active text-muted" to="/support">Support</Link>
-              </li>
-              <li className="nav-item">
-                <Link className="nav-link active" to="#"><i className="fa fa-bars" aria-hidden="true"></i></Link>
-              </li>
+              {user ? (
+                <li className="nav-item">
+                  <button
+                    onClick={logout}
+                    className="nav-link active text-muted"
+                    style={{
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Logout
+                  </button>
+                </li>
+              ) : (
+                <>
+                  <li className="nav-item">
+                    <Link
+                      className="nav-link active text-muted"
+                      aria-current="page"
+                      to="/signup"
+                    >
+                      Signup
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link className="nav-link active text-muted" to="/login">
+                      Login
+                    </Link>
+                  </li>
+                </>
+              )}
 
+              <li className="nav-item">
+                <Link className="nav-link active" to="#">
+                  <i className="fa fa-bars" aria-hidden="true"></i>
+                </Link>
+              </li>
             </ul>
-
-            </form>
-
-          </div>
+          </form>
         </div>
-      </nav>
+      </div>
+    </nav>
   );
 }
 

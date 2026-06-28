@@ -1,9 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 function Hero() {
+  const navigate = useNavigate();
+
   return (
     <>
-      {/* HERO TITLE */}
       <div
         className="container text-center"
         style={{ marginTop: "140px", marginBottom: "140px" }}
@@ -20,7 +22,6 @@ function Hero() {
         </p>
       </div>
 
-      {/* CHARGES SECTION */}
       <div className="container">
         <div className="row text-center mb-5">
           <div className="col-4 p-5">
@@ -31,8 +32,8 @@ function Hero() {
             />
             <h4>Free equity delivery</h4>
             <p className="text-muted">
-              All equity delivery investments (NSE, BSE) are absolutely free — ₹0
-              brokerage.
+              All equity delivery investments (NSE, BSE) are absolutely free —
+              ₹0 brokerage.
             </p>
           </div>
 
@@ -44,9 +45,9 @@ function Hero() {
             />
             <h4>Intraday and F&O trades</h4>
             <p className="text-muted">
-              Flat ₹20 or 0.03% (whichever is lower) per executed order on intraday
-              trades across equity, currency, and commodity. Flat ₹20 on all
-              option trades.
+              Flat ₹20 or 0.03% (whichever is lower) per executed order on
+              intraday trades across equity, currency, and commodity. Flat ₹20
+              on all option trades.
             </p>
           </div>
 
@@ -65,7 +66,6 @@ function Hero() {
         </div>
       </div>
 
-      {/* OPEN ACCOUNT SECTION */}
       <div
         className="container text-center"
         style={{ marginTop: "120px", marginBottom: "140px" }}
@@ -85,6 +85,7 @@ function Hero() {
         <button
           className="btn btn-primary px-5 py-2"
           style={{ fontSize: "18px" }}
+          onClick={() => navigate("/signup")}
         >
           Sign up Now
         </button>

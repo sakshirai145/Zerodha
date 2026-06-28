@@ -1,6 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 function Universe() {
+  const navigate = useNavigate();
+
   return (
     <section
       style={{
@@ -141,6 +144,7 @@ function Universe() {
             borderRadius: "4px",
             cursor: "pointer",
           }}
+          onClick={() => navigate("/signup")}
         >
           Sign up for free
         </button>

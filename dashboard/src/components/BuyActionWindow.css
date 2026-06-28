@@ -210,7 +210,59 @@
     background-color: transparent;
   }
   
-  .btn-blue:hover {
+  .mode-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.mode-btn {
+  flex: 1;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  background: #fff;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.mode-buy-active {
+  background: #4184f3;
+  color: #fff;
+  border-color: #4184f3;
+}
+
+.mode-sell-active {
+  background: #ff5722;
+  color: #fff;
+  border-color: #ff5722;
+}
+
+.total-cost {
+  font-size: 14px;
+  font-weight: 500;
+  color: #424242;
+  margin-top: 8px;
+}
+
+.trade-error {
+  color: #d32f2f;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.btn-sell {
+  background: #ff5722;
+}
+
+.btn-sell:hover {
+  background: #e64a19;
+}
+
+.btn-blue:hover {
     background: #74a7fa;
   }
   

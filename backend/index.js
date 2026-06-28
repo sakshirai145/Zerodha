@@ -5,20 +5,56 @@ const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 
-const PORT = process.env.PORT || 3002;
-const uri = process.env.MONGODB_URI;
 const isProduction = process.env.NODE_ENV === "production";
 
-const HoldingsModel = require("./models/HoldingsModel");
-const PositionsModel = require("./models/PositionsModel");
-const OrdersModel = require("./models/OrdersModel");
+const requiredEnvs = ["MONGODB_URI", "JWT_SECRET"];
+const missing = requiredEnvs.filter((k) => !process.env[k]);
+if (missing.length > 0) {
+  console.error(`Missing required env vars: ${missing.join(", ")}`);
+  process.exit(1);
+}
+
+const PORT = process.env.PORT;
+if (!PORT) {
+  console.error("Missing required env var: PORT");
+  process.exit(1);
+}
+const uri = process.env.MONGODB_URI;
+
+const authRoutes = require("./routes/auth");
+const profileRoutes = require("./routes/profile");
+const ordersRoutes = require("./routes/orders");
+const holdingsRoutes = require("./routes/holdings");
+const positionsRoutes = require("./routes/positions");
+const fundsRoutes = require("./routes/funds");
+const tradeRoutes = require("./routes/trade");
+const watchlistRoutes = require("./routes/watchlist");
+const summaryRoutes = require("./routes/summary");
+const appsRoutes = require("./routes/apps");
+
 const app = express();
 
 app.use(helmet());
 
+const ALLOWED_ORIGINS = [
+  process.env.FRONTEND_URL,
+  process.env.DASHBOARD_URL,
+]
+  .filter(Boolean)
+  .map((o) => o.replace(/\/+$/, ""));
+
 const corsOptions = {
-  origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+  origin: function (origin, callback) {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn(`CORS blocked origin: ${origin}`);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Authorization", "Content-Type"],
 };
 app.use(cors(corsOptions));
 
@@ -26,7 +62,7 @@ app.use(express.json());
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 200,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Too many requests, please try again later." },
@@ -41,59 +77,35 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.get("/allHoldings", async (req, res) => {
-  try {
-    let allHoldings = await HoldingsModel.find({});
-    res.json(allHoldings);
-  } catch (error) {
-    console.error("Error fetching holdings:", error);
-    res.status(500).json({ error: "Failed to fetch holdings" });
-  }
-});
+app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/orders", ordersRoutes);
+app.use("/api/holdings", holdingsRoutes);
+app.use("/api/positions", positionsRoutes);
+app.use("/api/funds", fundsRoutes);
+app.use("/api/trade", tradeRoutes);
+app.use("/api/watchlist", watchlistRoutes);
+app.use("/api/summary", summaryRoutes);
+app.use("/api/apps", appsRoutes);
 
-app.get("/allPositions", async (req, res) => {
-  try {
-    let allPositions = await PositionsModel.find({});
-    res.json(allPositions);
-  } catch (error) {
-    console.error("Error fetching positions:", error);
-    res.status(500).json({ error: "Failed to fetch positions" });
-  }
-});
-
-app.post("/newOrders", async (req, res) => {
-  try {
-    const newOrder = new OrdersModel({
-      name: req.body.name,
-      qty: req.body.qty,
-      price: req.body.price,
-      mode: req.body.mode,
-    });
-
-    await newOrder.save();
-
-    res.status(201).send("Order added");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Failed to add order");
-  }
+process.on("unhandledRejection", (err) => {
+  console.error("Unhandled rejection:", err);
+  process.exit(1);
 });
 
 mongoose
   .connect(uri)
   .then(() => {
     console.log("Connected to MongoDB");
+    app.listen(PORT, () => {
+      console.log(
+        `Server is running on port ${PORT} (${isProduction ? "production" : "development"})`
+      );
+    });
   })
   .catch((err) => {
     console.error("MongoDB connection error:", err);
+    process.exit(1);
   });
-
-process.on("unhandledRejection", (err) => {
-  console.error("Unhandled rejection:", err);
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT} (${isProduction ? "production" : "development"})`);
-});
 
 module.exports = app;
