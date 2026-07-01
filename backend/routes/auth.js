@@ -72,7 +72,7 @@ router.post("/signup", async (req, res) => {
       password,
     });
 
-    // Create default Fund document
+    // Create default Fund
     await Fund.create({
       userId: user._id,
     });
@@ -80,7 +80,56 @@ router.post("/signup", async (req, res) => {
     // Create default Watchlist
     await Watchlist.create({
       userId: user._id,
-      items: [],
+      items: [
+        {
+          symbol: "INFY",
+          name: "Infosys",
+          price: 1555.45,
+          priceUpdatedAt: new Date(),
+        },
+        {
+          symbol: "RELIANCE",
+          name: "Reliance Industries",
+          price: 2112.40,
+          priceUpdatedAt: new Date(),
+        },
+        {
+          symbol: "TCS",
+          name: "Tata Consultancy Services",
+          price: 3194.80,
+          priceUpdatedAt: new Date(),
+        },
+        {
+          symbol: "WIPRO",
+          name: "Wipro",
+          price: 577.75,
+          priceUpdatedAt: new Date(),
+        },
+        {
+          symbol: "ONGC",
+          name: "ONGC",
+          price: 116.80,
+          priceUpdatedAt: new Date(),
+        },
+        {
+          symbol: "HUL",
+          name: "Hindustan Unilever",
+          price: 512.40,
+          priceUpdatedAt: new Date(),
+        },
+        {
+          symbol: "M&M",
+          name: "Mahindra & Mahindra",
+          price: 779.80,
+          priceUpdatedAt: new Date(),
+        },
+        {
+          symbol: "KPITTECH",
+          name: "KPIT Technologies",
+          price: 266.45,
+          priceUpdatedAt: new Date(),
+        },
+      ],
     });
 
     const token = signToken(user._id);
