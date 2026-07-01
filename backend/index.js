@@ -33,6 +33,7 @@ const summaryRoutes = require("./routes/summary");
 const appsRoutes = require("./routes/apps");
 
 const app = express();
+app.set("trust proxy", 1);
 
 app.use(helmet());
 
